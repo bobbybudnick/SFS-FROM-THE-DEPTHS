@@ -1,0 +1,48 @@
+function Update(I)
+--super advanced flight control version 1
+SECONDARY_INDEX = -1
+SETTING_PRE = I:Component_GetIntLogic(1, 0)
+if (SETTING_PRE == 1) then
+--I:Log('Secondary STIM drive found - index 0')
+SECONDARY_INDEX = 0
+end
+SETTING_PRE = I:Component_GetIntLogic(1, 1)
+if (SETTING_PRE == 1) then
+--I:Log('Secondary STIM drive found - index 1')
+SECONDARY_INDEX = 1
+end
+SETTING_PRE = I:Component_GetIntLogic(1, 2)
+if (SETTING_PRE == 1) then
+--I:Log('Secondary STIM drive found - index 2')
+SECONDARY_INDEX = 2
+end
+if (SECONDARY_INDEX == -1) then
+I:Log('Secondary STIM drive search - something went wrong!')
+end
+SECONDARY_SETTING_THROTTLE = I:Component_GetFloatLogic(1, SECONDARY_INDEX)
+if (SECONDARY_SETTING_THROTTLE <= 0.50) then
+--signal acb to deactivate engines
+--this is just a generic signal used as a variable so acb picks up on it
+I:RequestComplexControllerStimulus(14)
+end
+if (SECONDARY_SETTING_THROTTLE > 0.50) then
+ALTITUDE_SETTING_PRE = I:Component_GetFloatLogic(11, 0)
+--I:Log(string.format("Setting: %f",ALTITUDE_SETTING_PRE))
+ALTITUDE_SETTING = ALTITUDE_SETTING_PRE * 10000
+I:Log(string.format("Setting: %f",ALTITUDE_SETTING))
+VEHICLE_ALTITUDE_CHECK = I:GetConstructPosition()
+--another way to reference arrays
+--VEHICLE_ALTITUDE = VEHICLE_ALTITUDE_CHECK [2]
+VEHICLE_ALTITUDE = VEHICLE_ALTITUDE_CHECK.y
+if (VEHICLE_ALTITUDE < ALTITUDE_SETTING) then
+--signal acb to activate engines
+--this is just a generic signal used as a variable so acb picks up on it
+I:RequestComplexControllerStimulus(13)
+end
+if (VEHICLE_ALTITUDE >= ALTITUDE_SETTING) then
+--signal acb to deactivate engines
+--this is just a generic signal used as a variable so acb picks up on it
+I:RequestComplexControllerStimulus(14)
+end
+end --secondary setting throttle
+end

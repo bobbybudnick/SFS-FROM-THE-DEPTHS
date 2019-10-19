@@ -1,0 +1,55 @@
+function Update(I)
+--run only when in target pointer mode
+--simpler search for tertiary drive maintainer
+TERTIARY_INDEX = -1
+SETTING_PRE = I:Component_GetIntLogic(1, 0)
+if (SETTING_PRE == 2) then
+--I:Log('Tertiary STIM drive found - index 0')
+TERTIARY_INDEX = 0
+end
+SETTING_PRE = I:Component_GetIntLogic(1, 1)
+if (SETTING_PRE == 2) then
+--I:Log('Tertiary STIM drive found - index 1')
+TERTIARY_INDEX = 1
+end
+SETTING_PRE = I:Component_GetIntLogic(1, 2)
+if (SETTING_PRE == 2) then
+--I:Log('Tertiary STIM drive found - index 2')
+TERTIARY_INDEX = 2
+end
+if (TERTIARY_INDEX == -1) then
+I:Log('Tertiary STIM drive search - something went wrong!')
+end
+TERTIARY_SETTING_THROTTLE = I:Component_GetFloatLogic(1, TERTIARY_INDEX)
+if (TERTIARY_SETTING_THROTTLE > 0.50) then
+--turn on if steam controller is set above half
+POWER_SWITCH = I:Component_GetFloatLogic(17, 0)
+if (POWER_SWITCH > 0.5) then
+TARGET_ARRAY = I:GetTargetPositionInfo(0, 0)
+TARGET_ELEVATION = TARGET_ARRAY.ElevationForAltitudeComponentOnly
+--this should put all guns on target
+ADJUSTED_ELEVATION = TARGET_ELEVATION - 1
+--VEHICLE_PITCH = I:GetConstructPitch()
+--if (VEHICLE_PITCH < ADJUSTED_ELEVATION) then
+--pitch down
+--I:RequestComplexControllerStimulus(5)
+--end
+--if (VEHICLE_PITCH > ADJUSTED_ELEVATION) then
+--pitch up
+--I:RequestComplexControllerStimulus(6)
+--end
+if (ADJUSTED_ELEVATION < 0) then
+--pitch down
+I:RequestComplexControllerStimulus(5)
+end
+if (ADJUSTED_ELEVATION > 0) then
+--pitch up
+I:RequestComplexControllerStimulus(6)
+end 
+--I:Log(string.format("Pitch: %f",VEHICLE_PITCH))
+--I:Log(string.format("Target Elevation: %f",TARGET_ELEVATION))
+--I:Log(string.format("Target Elevation: %f",ADJUSTED_ELEVATION))
+end --power switch
+end --tertiary setting throttle
+end
+

@@ -1,0 +1,26 @@
+--search out the maneuver bug
+--lets you know when to bring the vehicle out of play and back into play
+--should not activate under pid control because it is sensitive
+COUNTER = 0
+FIRST_CHECK_COMPLETE = 0
+function Update(I)
+if (FIRST_CHECK_COMPLETE == 0) then
+PITCH_CHECK_FIRST = I:GetConstructPitch()
+FIRST_CHECK_COMPLETE = 1
+end
+COUNTER = COUNTER + 1
+if (COUNTER > 400) then
+PITCH_CHECK_SECOND = I:GetConstructPitch()
+--I:Log(string.format("First Pitch: %f",PITCH_CHECK_FIRST))
+--I:Log(string.format("Second Pitch: %f",PITCH_CHECK_SECOND))
+DIFFERENCE = math.abs(math.abs(PITCH_CHECK_SECOND) - math.abs(PITCH_CHECK_FIRST))
+--I:Log(string.format("Difference: %f",DIFFERENCE))
+if (DIFFERENCE < .001) then
+--I:Log("Bad News")
+I:LogToHud("Possible presence of Maneuver Bug: ignore if sitting in space or frozen by caps lock")
+end
+FIRST_CHECK_COMPLETE = 0
+COUNTER = 0
+end
+end
+

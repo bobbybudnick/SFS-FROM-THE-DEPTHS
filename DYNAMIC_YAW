@@ -1,0 +1,65 @@
+--dynamic yaw stability script
+
+--the included pid block has serious limitations
+--it does not have the ability to dynamically adjust yaw stability
+--it stays set to zero heading unless modified by a fake heading
+--this compares the current heading to a heading taken a very short time ago
+--if off significantly it tries to turn back into the previous direction
+--thus the heading setting is always "rolling" instead of fixed at some number
+--a "flight director" instead of an autopilot
+--hopefully the yaw PID can override if necessary to stay on a fixed course
+
+--in general flight stability with roll and pitch PID control should be enabled
+--roll handling was too slow under PID control
+--disable roll PID when sending a roll command
+--renable roll PID when not sending a roll command
+
+TIMER = 0
+HEADING_STORED = 0
+function Update(I)
+TIMER = TIMER + 1
+if (HEADING_STORED == 0) then
+OLD_HEADING = I:GetConstructYaw()
+HEADING_STORED = 1
+end
+if (TIMER > 1) then
+--this should ideally be set to better understand the crossover between 0 and -180
+NEW_HEADING = I:GetConstructYaw()
+HEADING_DIFFERENCE = OLD_HEADING - NEW_HEADING
+--I:Log(string.format("Difference: %f",HEADING_DIFFERENCE))
+RIGHT_TURN_REQUEST = 0
+LEFT_TURN_REQUEST = 0
+if (HEADING_DIFFERENCE > .1) then
+RIGHT_TURN_REQUEST = 1
+end
+if (HEADING_DIFFERENCE < -.1) then
+LEFT_TURN_REQUEST = 1
+end
+TIMER = 0
+HEADING_STORED = 0
+end
+ROLL = I:GetConstructRoll()
+--I:Log(string.format("Roll: %f",ROLL))
+if (ROLL < 15) or (ROLL > 345) then
+if (RIGHT_TURN_REQUEST == 1) then
+--I:Log('Turning Right') 
+I:RequestControl(2,1,1)
+end
+if (LEFT_TURN_REQUEST == 1) then
+--I:Log('Turning Left') 
+I:RequestControl(2,0,1)
+end
+end
+--previously when rolled the vehicle would behave counterintuitively
+--it would swing opposite the direction of the roll unlike a real airplane
+--this adds a small amount of yaw when rolled
+--this part may need to be disabled based on the vehicle in use
+if (RIGHT_TURN_REQUEST == 0) and (LEFT_TURN_REQUEST == 0) then
+if (ROLL >= 15) and (ROLL < 180) then
+I:RequestControl(2,0,.5)
+end
+if (ROLL <= 345) and (ROLL > 180) then
+I:RequestControl(2,1,.5)
+end
+end
+end
